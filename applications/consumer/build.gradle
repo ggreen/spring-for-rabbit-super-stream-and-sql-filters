@@ -35,6 +35,7 @@ dependencies {
 	implementation 'org.springframework.cloud:spring-cloud-stream-binder-rabbit'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	implementation 'com.github.nyla-solutions:nyla.solutions.core:2.5.0'
+	implementation project(':components:domains')
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
