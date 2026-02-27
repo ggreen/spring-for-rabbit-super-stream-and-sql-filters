@@ -15,3 +15,31 @@ buildNumber.properties
 .project
 # JDT-specific (Eclipse Java Development Tools)
 .classpath
+gradle/
+build/
+
+# Ignore Gradle cache and specialized task data
+.gradle-snapshot*
+bin/
+
+# --- Gradle Wrapper ---
+# IMPORTANT: Do NOT ignore gradle-wrapper.jar.
+# It is required for others to run './gradlew' without installing Gradle.
+!gradle/wrapper/gradle-wrapper.jar
+
+# --- IDE Specific (IntelliJ) ---
+.idea/
+*.iml
+*.iws
+out/
+
+# --- IDE Specific (Eclipse) ---
+.settings/
+.metadata/
+
+# --- OS Specific ---
+.DS_Store
+Thumbs.db
+
+# --- Log files ---
+*.log

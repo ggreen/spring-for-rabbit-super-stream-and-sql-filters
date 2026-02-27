@@ -1,1 +1,4 @@
 rootProject.name = 'spring-rabbit-streams'
+
+include 'components:domains'
+include 'applications:publisher'

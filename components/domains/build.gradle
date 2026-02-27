@@ -1,0 +1,22 @@
+plugins {
+    id 'java'
+    // This plugin simplifies Lombok setup significantly
+    id 'io.freefair.lombok' version '8.6'
+}
+
+group = 'io.cloudNativeData'
+version = '0.0.1-SNAPSHOT'
+description = 'spring-rabbit-streams-domains'
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
+}
+
+test {
+    useJUnitPlatform()
+}
