@@ -1,0 +1,1 @@
+podman run -it --rm --name rabbitmq -v "$PWD/deployment/local/containers/rabbitmq_enabled_plugins:/etc/rabbitmq/enabled_plugins" -p 5672:5672 -p 5552:5552 -p 15672:15672  -p  1883:1883 rabbitmq:4.2-management
