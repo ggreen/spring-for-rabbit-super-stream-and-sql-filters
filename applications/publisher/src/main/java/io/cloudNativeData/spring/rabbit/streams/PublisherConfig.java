@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.rabbit.stream.producer.RabbitStreamTemplate;
 
-@Configuration
+//@Configuration
 @Slf4j
 public class PublisherConfig {
 
@@ -25,7 +25,7 @@ public class PublisherConfig {
         return template;
     };
 
-    @Bean
+//    @Bean
     ApplicationRunner applicationRunner(RabbitStreamTemplate template) {
       return args -> {
         var results = template.convertAndSend(new SpringIoEvent("STARTED Rabbit demo"));
