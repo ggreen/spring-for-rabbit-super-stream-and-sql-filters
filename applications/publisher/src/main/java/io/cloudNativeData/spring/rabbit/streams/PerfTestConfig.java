@@ -13,7 +13,7 @@ import tools.jackson.databind.json.JsonMapper;
 
 import java.nio.charset.StandardCharsets;
 
-@Configuration
+//@Configuration
 @Slf4j
 public class PerfTestConfig {
 
@@ -71,5 +71,4 @@ public class PerfTestConfig {
             log.info("{} per second", (loopCount/(end - start))*1000);
         };
     }
-
 }
