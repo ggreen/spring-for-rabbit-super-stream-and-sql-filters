@@ -13,7 +13,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.function.Supplier;
 
-@Configuration
+//@Configuration
 @Slf4j
 public class SupplierConfig {
 

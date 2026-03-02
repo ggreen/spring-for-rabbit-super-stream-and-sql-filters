@@ -25,7 +25,7 @@ public class PublisherConfig {
         return template;
     };
 
-//    @Bean
+    @Bean
     ApplicationRunner applicationRunner(RabbitStreamTemplate template) {
       return args -> {
         var results = template.convertAndSend(new SpringIoEvent("STARTED Rabbit demo"));
