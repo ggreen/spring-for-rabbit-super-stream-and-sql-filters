@@ -8,7 +8,6 @@ import com.rabbitmq.client.amqp.impl.AmqpEnvironmentBuilder;
 import io.cloudNativeData.spring.rabbit.streams.domain.SpringIoEvent;
 import io.cloudNativeData.spring.rabbit.streams.domain.ai.SpringIOEventSurvey;
 import lombok.extern.slf4j.Slf4j;
-import nyla.solutions.core.util.Debugger;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.prompt.ChatOptions;
@@ -17,21 +16,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
 
-import java.util.ArrayList;
 import java.util.List;
 
 
 @Configuration
 @Slf4j
-public class AiFilteredConsumerConfig {
+public class AiFilterConfig {
 
-    private final static String sqlFilter = """
-            session = 'rabbit' AND year = 2026
-            """;
-
-    @Value("${stream.name:events-1}")
-    private String streamName;
-    private static final int maxCapacity = 8;
     private final String prompt = """
             Given the following events from the Spring IO Conference.
             
@@ -45,15 +36,12 @@ public class AiFilteredConsumerConfig {
             ```
             """;
 
-    @Bean
-    ChatClient chatClient(ChatModel chatModel) {
+    private final static String sqlFilter = """
+            session = 'rabbit' AND year = 2026
+            """;
 
-        return ChatClient
-                .builder(chatModel)
-                .defaultOptions(ChatOptions.builder()
-                        .build())
-                .build();
-    }
+    @Value("${streamName:events-1}")
+    private String streamName;
 
     @Bean
     Environment amqpEnvironment() {
@@ -68,7 +56,6 @@ public class AiFilteredConsumerConfig {
         return environment.connectionBuilder()
                 .build();
     }
-
 
     @Bean
     Consumer filterAmqConsumer(Connection connection,
@@ -94,19 +81,26 @@ public class AiFilteredConsumerConfig {
                 .build();
     }
 
-
     @Bean
-    List<SpringIoEvent> events() {
-        return new ArrayList<>(maxCapacity);
+    ChatClient chatClient(ChatModel chatModel) {
+
+        return ChatClient
+                .builder(chatModel)
+                .defaultOptions(ChatOptions.builder()
+                        .build())
+                .build();
     }
 
     @Bean
-    java.util.function.Consumer<SpringIoEvent> logFilteredConsumer(List<SpringIoEvent> events,
-                                                                   ChatClient chatClient) {
+    java.util.function.Consumer<SpringIoEvent> aiEventsConsumer(List<SpringIoEvent> events,
+                                                                ChatClient chatClient) {
         return event -> {
             log.info("Received SpringIoEvent {}", event);
             events.add(event);
-            if (events.size() >= maxCapacity) {
+            if (events.size() >= 8) {
+
+                log.info("********* HERE IS THE VERDICT ***********\n Wait for IT!");
+
                 var verdict = chatClient.prompt()
                         .user(u -> u.text(prompt)
                                 .param("events", events))
@@ -117,4 +111,5 @@ public class AiFilteredConsumerConfig {
             }
         };
     }
+
 }

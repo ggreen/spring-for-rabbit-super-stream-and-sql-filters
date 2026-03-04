@@ -26,8 +26,7 @@ public class FilteredConsumerConfig {
 
 
     @Bean
-    Environment amqpEnvironment()
-    {
+    Environment amqpEnvironment() {
         return new AmqpEnvironmentBuilder()
                 .connectionSettings()
                 .environmentBuilder()
@@ -35,8 +34,7 @@ public class FilteredConsumerConfig {
     }
 
     @Bean("alertConnection")
-    Connection alertConnection(Environment environment)
-    {
+    Connection alertConnection(Environment environment) {
         return environment.connectionBuilder()
                 .build();
     }
@@ -45,9 +43,9 @@ public class FilteredConsumerConfig {
     @Bean
     Consumer alertRabbitConsumer(Connection connection,
                                  java.util.function.Consumer<SpringIoEvent> alertConsumer,
-                                 Converter<byte[],SpringIoEvent> converter){
+                                 Converter<byte[], SpringIoEvent> converter) {
 
-        log.info("input consumed with SQL '{}' from input stream {}",sqlFilter,streamName);
+        log.info("input consumed with SQL '{}' from input stream {}", sqlFilter, streamName);
 
         var builder = connection.consumerBuilder()
                 .queue(streamName)
@@ -58,14 +56,12 @@ public class FilteredConsumerConfig {
                 .filter()
                 .sql(sqlFilter)
                 .stream()
-                .builder().messageHandler((ctx,inputMessage) -> {
+                .builder().messageHandler((ctx, inputMessage) -> {
 
                     try {
                         //Processing input message
                         alertConsumer.accept(converter.convert(inputMessage.body()));
-                    }
-                    catch (Exception e)
-                    {
+                    } catch (Exception e) {
                         log.error(Debugger.stackTrace(e));
                         throw e;
                     }
@@ -76,8 +72,9 @@ public class FilteredConsumerConfig {
 
 
     @Bean
-    java.util.function.Consumer<SpringIoEvent> logFilteredConsumer()
-    {
-        return event -> { log.info("Received SpringIoEvent {}", event); };
+    java.util.function.Consumer<SpringIoEvent> logFilteredConsumer() {
+        return event -> {
+            log.info("Received SpringIoEvent {}", event);
+        };
     }
 }
