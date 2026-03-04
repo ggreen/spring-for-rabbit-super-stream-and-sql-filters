@@ -37,8 +37,8 @@ public class AiFilteredConsumerConfig {
             
             Provides you opinion on Talk. Indicate
             whether you think it was good, bad or just OK.
-           
-                
+            
+            
             [events]
             ```json
             {events}
@@ -46,7 +46,7 @@ public class AiFilteredConsumerConfig {
             """;
 
     @Bean
-    ChatClient chatClient(ChatModel chatModel){
+    ChatClient chatClient(ChatModel chatModel) {
 
         return ChatClient
                 .builder(chatModel)
@@ -56,8 +56,7 @@ public class AiFilteredConsumerConfig {
     }
 
     @Bean
-    Environment amqpEnvironment()
-    {
+    Environment amqpEnvironment() {
         return new AmqpEnvironmentBuilder()
                 .connectionSettings()
                 .environmentBuilder()
@@ -65,19 +64,18 @@ public class AiFilteredConsumerConfig {
     }
 
     @Bean("alertConnection")
-    Connection alertConnection(Environment environment)
-    {
+    Connection alertConnection(Environment environment) {
         return environment.connectionBuilder()
                 .build();
     }
 
 
     @Bean
-    Consumer alertRabbitConsumer(Connection connection,
-                                 java.util.function.Consumer<SpringIoEvent> alertConsumer,
-                                 Converter<byte[],SpringIoEvent> converter){
+    Consumer filterAmqConsumer(Connection connection,
+                               java.util.function.Consumer<SpringIoEvent> consumerService,
+                               Converter<byte[], SpringIoEvent> converter) {
 
-        log.info("input consumed with SQL '{}' from input stream {}",sqlFilter,streamName);
+        log.info("input consumed with SQL '{}' from input stream {}", sqlFilter, streamName);
 
         var builder = connection.consumerBuilder()
                 .queue(streamName)
@@ -88,17 +86,9 @@ public class AiFilteredConsumerConfig {
                 .filter()
                 .sql(sqlFilter)
                 .stream()
-                .builder().messageHandler((ctx,inputMessage) -> {
-
-                    try {
-                        //Processing input message
-                        alertConsumer.accept(converter.convert(inputMessage.body()));
-                    }
-                    catch (Exception e)
-                    {
-                        log.error(Debugger.stackTrace(e));
-                        throw e;
-                    }
+                .builder().messageHandler((ctx, inputMessage) -> {
+                    //Processing input message
+                    consumerService.accept(converter.convert(inputMessage.body()));
 
                 })
                 .build();
@@ -106,19 +96,17 @@ public class AiFilteredConsumerConfig {
 
 
     @Bean
-    List<SpringIoEvent> events()
-    {
+    List<SpringIoEvent> events() {
         return new ArrayList<>(maxCapacity);
     }
 
     @Bean
     java.util.function.Consumer<SpringIoEvent> logFilteredConsumer(List<SpringIoEvent> events,
-                                                                   ChatClient chatClient)
-    {
+                                                                   ChatClient chatClient) {
         return event -> {
             log.info("Received SpringIoEvent {}", event);
             events.add(event);
-            if(events.size() >= maxCapacity){
+            if (events.size() >= maxCapacity) {
                 var verdict = chatClient.prompt()
                         .user(u -> u.text(prompt)
                                 .param("events", events))
