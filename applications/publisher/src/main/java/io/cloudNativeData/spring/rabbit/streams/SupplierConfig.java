@@ -4,21 +4,15 @@ import io.cloudNativeData.spring.rabbit.streams.domain.SpringIoEvent;
 import lombok.extern.slf4j.Slf4j;
 import nyla.solutions.core.io.csv.CsvReader;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cloud.stream.config.ProducerMessageHandlerCustomizer;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
-import org.springframework.integration.amqp.outbound.RabbitStreamMessageHandler;
-import org.springframework.messaging.MessageHandler;
-import org.springframework.rabbit.stream.producer.RabbitStreamTemplate;
-import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.Supplier;
 
-@Configuration
+//@Configuration
 @Slf4j
 public class SupplierConfig {
 

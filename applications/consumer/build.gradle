@@ -29,6 +29,7 @@ ext {
 }
 
 dependencies {
+	implementation 'org.springframework.amqp:spring-rabbitmq-client'
 	implementation 'org.springframework.boot:spring-boot-starter-amqp'
 	implementation 'org.springframework.amqp:spring-rabbit-stream'
 	implementation 'org.springframework.cloud:spring-cloud-stream'

@@ -10,7 +10,7 @@ import org.springframework.messaging.converter.MessageConverter;
 
 import java.util.function.Consumer;
 
-@Configuration
+//@Configuration
 @Slf4j
 public class ConsumerConfig {
 
