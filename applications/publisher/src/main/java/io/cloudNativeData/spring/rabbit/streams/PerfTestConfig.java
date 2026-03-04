@@ -7,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.rabbit.stream.producer.RabbitStreamTemplate;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -46,7 +45,7 @@ public class PerfTestConfig {
     @Bean
     Message msg(RabbitStreamTemplate template, JsonMapper  mapper)
     {
-        var event = new SpringIoEvent("STARTED perftest");
+        var event =  SpringIoEvent.builder().event("STARTED perftest").build();
         var msgPayload = mapper.writeValueAsString(event);
         log.info("Sending event: {}", msgPayload);
 

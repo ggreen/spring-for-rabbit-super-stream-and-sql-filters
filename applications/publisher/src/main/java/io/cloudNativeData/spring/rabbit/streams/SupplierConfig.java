@@ -4,9 +4,14 @@ import io.cloudNativeData.spring.rabbit.streams.domain.SpringIoEvent;
 import lombok.extern.slf4j.Slf4j;
 import nyla.solutions.core.io.csv.CsvReader;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.stream.config.ProducerMessageHandlerCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
+import org.springframework.integration.amqp.outbound.RabbitStreamMessageHandler;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.rabbit.stream.producer.RabbitStreamTemplate;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -18,23 +23,28 @@ import java.util.function.Supplier;
 public class SupplierConfig {
 
 
-    @Value("classpath:csv/spring-io-events.csv")
+    @Value("classpath:csv/spring-io-session-events.csv")
     private Resource resource;
 
     @Bean
     Iterator<List<String>> csvLines() throws IOException {
         return new CsvReader(resource.getFile()).stream().iterator();
     }
+
+
+
     @Bean
     Supplier<SpringIoEvent> eventPublisher(Iterator<List<String>> csvLines) {
 
         return () -> {
             if(csvLines.hasNext()) {
-                var event = csvLines.next().getFirst();
-                log.info("Events {}",event);
-                return new SpringIoEvent(event);
+                var line = csvLines.next();
+                log.info("Events {}",line);
+                return  SpringIoEvent.builder()
+                        .event(line.getFirst())
+                        .session(line.get(1))
+                        .build();
             }
-
             return null;
         };
     }

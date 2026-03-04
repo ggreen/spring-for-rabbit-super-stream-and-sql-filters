@@ -9,6 +9,7 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.rabbit.stream.producer.RabbitStreamTemplate;
+import org.springframework.util.MimeType;
 
 //@Configuration
 @Slf4j
@@ -21,14 +22,15 @@ public class PublisherConfig {
     @Bean
     RabbitStreamTemplate template(Environment environment){
         var template = new RabbitStreamTemplate(environment, streamName);
-        template.setMessageConverter(new JacksonJsonMessageConverter());
+//        var converter = new JacksonJsonMessageConverter();
+//        template.setMessageConverter(converter);
         return template;
     };
 
     @Bean
     ApplicationRunner applicationRunner(RabbitStreamTemplate template) {
       return args -> {
-        var results = template.convertAndSend(new SpringIoEvent("STARTED Rabbit demo"));
+        var results = template.convertAndSend( SpringIoEvent.builder().event("STARTED Rabbit demo"));
 
         log.info("Sent with results: {}", results.get());
       };
