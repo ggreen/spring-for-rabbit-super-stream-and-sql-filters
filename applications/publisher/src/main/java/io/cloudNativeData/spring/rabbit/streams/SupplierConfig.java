@@ -12,6 +12,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.function.Supplier;
 
+import static java.lang.Integer.parseInt;
+
 //@Configuration
 @Slf4j
 public class SupplierConfig {
@@ -37,6 +39,7 @@ public class SupplierConfig {
                 return  SpringIoEvent.builder()
                         .event(line.getFirst())
                         .session(line.get(1))
+                        .year(parseInt(line.get(2)))
                         .build();
             }
             return null;
