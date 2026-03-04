@@ -18,7 +18,7 @@ import org.springframework.messaging.converter.MessageConverter;
 public class FilteredConsumerConfig {
 
     private final static String sqlFilter = """
-            session = 'rabbit' and year = 2026
+            session = 'rabbit' AND year = 2026
             """;
 
     @Value("${stream.name:events-1}")
@@ -62,7 +62,6 @@ public class FilteredConsumerConfig {
 
                     try {
                         //Processing input message
-                        log.info("Processing input: {}, msg id: {}", streamName, inputMessage.messageId());
                         alertConsumer.accept(converter.convert(inputMessage.body()));
                     }
                     catch (Exception e)
