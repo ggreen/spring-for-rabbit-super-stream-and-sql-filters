@@ -26,9 +26,14 @@ repositories {
 
 ext {
 	set('springCloudVersion', "2025.1.0")
+	set('springAiVersion', "2.0.0-M2")
 }
 
 dependencies {
+
+	implementation 'org.springframework.ai:spring-ai-starter-model-ollama'
+	implementation 'org.springframework.amqp:spring-rabbitmq-client'
+
 	implementation 'org.springframework.boot:spring-boot-starter-amqp'
 	implementation 'org.springframework.amqp:spring-rabbit-stream'
 	implementation 'org.springframework.cloud:spring-cloud-stream'
@@ -46,6 +51,7 @@ dependencies {
 dependencyManagement {
 	imports {
 		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+		mavenBom "org.springframework.ai:spring-ai-bom:${springAiVersion}"
 	}
 }
 
