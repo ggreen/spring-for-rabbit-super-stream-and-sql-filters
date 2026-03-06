@@ -10,5 +10,4 @@ public class StreamConsumerApp {
 		SpringApplication.run(StreamConsumerApp.class, args);
 	}
 
-
 }
