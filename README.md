@@ -262,6 +262,9 @@ java.util.function.Supplier<org.springframework.messaging.Message<io.cloudNative
                     .session(line.get(1))
                     .year(Integer.parseInt(line.get(2)))
                     .build();
+
+            log.info("sending: {}",event);
+
             return org.springframework.messaging.support.MessageBuilder.withPayload(event)
                     .setHeader("session", event.session())
                     .setHeader("year", event.year())
@@ -276,93 +279,90 @@ java.util.function.Supplier<org.springframework.messaging.Message<io.cloudNative
 Consumer with SQL Filter
 
 ```java
-    private final static String sqlFilter = """
-            session = 'rabbit' AND year = 2026
-            """;
+        private final static String sqlFilter = """
+        session = 'rabbit' AND year = 2026
+        """;
 
-    @org.springframework.beans.factory.annotation.Value("${stream.name:events.super.streams.filtering-1}")
-    private String streamName;
-
-
-    @org.springframework.context.annotation.Bean
-    com.rabbitmq.client.amqp.Environment amqpEnvironment() {
-        return new com.rabbitmq.client.amqp.impl.AmqpEnvironmentBuilder()
-                .connectionSettings()
-                .environmentBuilder()
-                .build();
-    }
-
-    @org.springframework.context.annotation.Bean
-    com.rabbitmq.client.amqp.Connection alertConnection(com.rabbitmq.client.amqp.Environment environment) {
-        return environment.connectionBuilder()
-                .build();
-    }
+@org.springframework.beans.factory.annotation.Value("${stream.name:events.super.streams.filtering-1}")
+private String streamName;
 
 
-    @org.springframework.context.annotation.Bean
-    com.rabbitmq.client.amqp.Consumer alertRabbitConsumer(com.rabbitmq.client.amqp.Connection connection,
-                                                          @org.springframework.beans.factory.annotation.Qualifier("logFilteredMsgHandler")
-                                                          org.springframework.messaging.MessageHandler messageHandler,
-                                                          org.springframework.messaging.converter.MessageConverter messageConverter) {
+@org.springframework.context.annotation.Bean
+com.rabbitmq.client.amqp.Environment amqpEnvironment() {
+    return new com.rabbitmq.client.amqp.impl.AmqpEnvironmentBuilder()
+            .connectionSettings()
+            .environmentBuilder()
+            .build();
+}
 
-        log.info("input consumed with SQL '{}' from input stream {}", sqlFilter, streamName);
-
-        var builder = connection.consumerBuilder()
-                .queue(streamName)
-                .stream()
-                .offset(com.rabbitmq.client.amqp.ConsumerBuilder.StreamOffsetSpecification.FIRST);
-
-        return builder
-                .filter()
-                .sql(sqlFilter)
-                .stream()
-                .builder().messageHandler((ctx, inputMessage) -> {
-
-                    try {
-                        //Processing input message
-                        messageHandler.handleMessage(
-                                Objects.requireNonNull(messageConverter.toMessage(inputMessage.body(),
-                                        null)));
-                    } catch (Exception e) {
-                        log.error("Error:"+e);
-                        throw e;
-                    }
-
-                })
-                .build();
-    }
+@org.springframework.context.annotation.Bean
+com.rabbitmq.client.amqp.Connection alertConnection(com.rabbitmq.client.amqp.Environment environment) {
+    return environment.connectionBuilder()
+            .build();
+}
 
 
-    @org.springframework.context.annotation.Bean("logFilteredMsgHandler")
-    org.springframework.messaging.MessageHandler logFilteredMessageHandler() {
-        return msg -> {
-            log.info("Received SpringIoEvent {}", msg.getPayload());
-        };
-    }
+@org.springframework.context.annotation.Bean
+com.rabbitmq.client.amqp.Consumer alertRabbitConsumer(com.rabbitmq.client.amqp.Connection connection,
+                                                      nyla.solutions.core.patterns.integration.Subscriber<io.cloudNativeData.spring.rabbit.streams.domain.SpringIoEvent> logFilteredEvent,
+                                                      org.springframework.core.convert.converter.Converter<byte[],io.cloudNativeData.spring.rabbit.streams.domain.SpringIoEvent> messageConverter) {
+
+    log.info("input consumed with SQL '{}' from input stream {}", sqlFilter, streamName);
+
+    var builder = connection.consumerBuilder()
+            .queue(streamName)
+            .stream()
+            .offset(com.rabbitmq.client.amqp.ConsumerBuilder.StreamOffsetSpecification.FIRST);
+
+    return builder
+            .filter()
+            .sql(sqlFilter)
+            .stream()
+            .builder().messageHandler((ctx, inputMessage) -> {
+
+                try {
+                    //Processing input message
+                    logFilteredEvent.accept(
+                            messageConverter.convert(inputMessage.body()));
+                } catch (Exception e) {
+                    log.error("Error:{}", String.valueOf(e));
+                    throw e;
+                }
+
+            })
+            .build();
+}
+
+
+@org.springframework.context.annotation.Bean
+nyla.solutions.core.patterns.integration.Subscriber<io.cloudNativeData.spring.rabbit.streams.domain.SpringIoEvent> logFilteredEvent() {
+    return event -> {
+        log.info("Received: {}", event);
+    };
+}
 ```
 
 
 AI Intelligence
 
 ```java
-
 private final String prompt = """
-                               Given the following events from the Spring IO Conference.
-                Provides your opinion on the Talk. Indicate
-                whether you think it was GOOD,OK,BAD.
-            
-                [events]
-                ```json
-                {events}
-                ```
-                Provide a summarized opinion of the talk based on these events.
-                Include events details to explain your opinion.
-                Use a minimum of 7 words to summarize your opinion.
-            """;
+                           Given the following events from the Spring IO Conference.
+            Provides your opinion on the Talk. Indicate
+            whether you think it was GOOD,OK,BAD.
+        
+            [events]
+            ```json
+            {events}
+            ```
+            Provide a summarized opinion of the talk based on these events.
+            Include events details to explain your opinion.
+            Use a minimum of 7 words to summarize your opinion.
+        """;
 
 private final static String sqlFilter = """
-            session = 'rabbit' AND year = 2026
-            """;
+        session = 'rabbit' AND year = 2026
+        """;
 
 @org.springframework.beans.factory.annotation.Value("${streamName:events.super.streams.filtering-1}")
 private String streamName;
@@ -383,8 +383,8 @@ com.rabbitmq.client.amqp.Connection alertConnection(com.rabbitmq.client.amqp.Env
 
 @org.springframework.context.annotation.Bean
 com.rabbitmq.client.amqp.Consumer filterAmqConsumer(com.rabbitmq.client.amqp.Connection connection,
-        java.util.function.Consumer<io.cloudNativeData.spring.rabbit.streams.domain.SpringIoEvent> consumerService,
-        org.springframework.core.convert.converter.Converter<byte[], io.cloudNativeData.spring.rabbit.streams.domain.SpringIoEvent> converter) {
+                                                    nyla.solutions.core.patterns.integration.Subscriber<io.cloudNativeData.spring.rabbit.streams.domain.SpringIoEvent> consumerService,
+                                                    org.springframework.core.convert.converter.Converter<byte[], io.cloudNativeData.spring.rabbit.streams.domain.SpringIoEvent> converter) {
 
     log.info("input consumed with SQL '{}' from input stream {}", sqlFilter, streamName);
 
@@ -416,8 +416,8 @@ org.springframework.ai.chat.client.ChatClient chatClient(org.springframework.ai.
 }
 
 @org.springframework.context.annotation.Bean
-java.util.function.Consumer<io.cloudNativeData.spring.rabbit.streams.domain.SpringIoEvent> aiEventsConsumer(java.util.List<io.cloudNativeData.spring.rabbit.streams.domain.SpringIoEvent> events,
-        org.springframework.ai.chat.client.ChatClient chatClient) {
+nyla.solutions.core.patterns.integration.Subscriber<io.cloudNativeData.spring.rabbit.streams.domain.SpringIoEvent> aiEventsConsumer(java.util.List<io.cloudNativeData.spring.rabbit.streams.domain.SpringIoEvent> events,
+                                                                                                                                    org.springframework.ai.chat.client.ChatClient chatClient) {
     return event -> {
         log.info("Received SpringIoEvent {}", event);
         events.add(event);
