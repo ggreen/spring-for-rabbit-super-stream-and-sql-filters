@@ -6,7 +6,7 @@ plugins {
 
 group = 'io.cloudNativeData'
 version = '0.0.1-SNAPSHOT'
-description = 'spring-rabbit-streams-publisher'
+description = 'serialization'
 
 java {
 	toolchain {
@@ -29,15 +29,13 @@ ext {
 }
 
 dependencies {
+
+	implementation project(':components:domains')
 	implementation 'org.springframework.boot:spring-boot-starter-amqp'
 	implementation 'org.springframework.amqp:spring-rabbit-stream'
 	implementation 'org.springframework.cloud:spring-cloud-stream'
 	implementation 'org.springframework.cloud:spring-cloud-stream-binder-rabbit'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
-	implementation 'com.github.nyla-solutions:nyla.solutions.core:2.5.1'
-	implementation project(':components:domains')
-	compileOnly 'org.projectlombok:lombok'
-	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.cloud:spring-cloud-stream-test-binder'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'

@@ -1,5 +1,6 @@
 rootProject.name = 'spring-rabbit-streams'
 
 include 'components:domains'
+include 'components:serialization'
 include 'applications:publisher'
 include 'applications:consumer'

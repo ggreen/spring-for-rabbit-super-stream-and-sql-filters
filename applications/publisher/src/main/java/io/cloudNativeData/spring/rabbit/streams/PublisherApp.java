@@ -4,10 +4,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class StreamPublisherApp {
+public class PublisherApp {
 
 	public static void main(String[] args) {
-		SpringApplication.run(StreamPublisherApp.class, args);
+		SpringApplication.run(PublisherApp.class, args);
 	}
 
 
