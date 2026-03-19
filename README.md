@@ -6,6 +6,15 @@ Start RabbitMQ
 deployment/local/containers/rabbit.sh
 ```
 
+
+
+Stream Tracking
+
+```shell
+rabbitmq-streams list_stream_tracking events.spring.io -n rabbit
+```
+
+
 Start Consumer 
 
 ```java
@@ -453,5 +462,6 @@ rabbitmqadmin delete exchange name=aiEventsConsumer-in-0
 rabbitmqadmin delete exchange name=events
 rabbitmqadmin delete exchange name=events.super.streams
 rabbitmqadmin delete exchange name=logFilteredConsumer-in-0
+rabbitmqadmin delete exchange name=logFilteredEvent-in-0
 rabbitmqadmin delete exchange name=events.super.streams.filtering
 ```
