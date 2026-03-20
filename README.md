@@ -112,7 +112,7 @@ org.springframework.rabbit.stream.producer.RabbitStreamTemplate template(com.rab
 
     var template = new org.springframework.rabbit.stream.producer.RabbitStreamTemplate(environment, perfTestStreamName);
     template.setProducerCustomizer((stream, builder) -> {
-        builder.batchSize(batchSize); //722000
+        builder.batchSize(batchSize);
         builder.subEntrySize(subBatchSize);
     });
 
@@ -142,8 +142,9 @@ org.springframework.boot.ApplicationRunner applicationRunner(org.springframework
         }
 
         var end = System.currentTimeMillis();
+        var thruPut = (loopCount / (end - start)) * 1000;
 
-        log.info("{} per second", (loopCount / (end - start)) * 1000);
+        log.info("{} per second", nyla.solutions.core.util.Text.format().formatNumber(thruPut));
     };
 }
 ```
