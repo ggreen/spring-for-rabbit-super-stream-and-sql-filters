@@ -1,6 +1,6 @@
 plugins {
 	id 'java'
-	id 'org.springframework.boot' version '4.0.3'
+	id 'org.springframework.boot' version '4.0.5'
 	id 'io.spring.dependency-management' version '1.1.7'
 }
 
@@ -25,17 +25,15 @@ repositories {
 }
 
 ext {
-	set('springCloudVersion', "2025.1.0")
-	set('springAiVersion', "2.0.0-M2")
+	set('springCloudVersion', "2025.1.1")
+	set('springAiVersion', "2.0.0-M4")
 }
 
 dependencies {
 
-	implementation 'org.springframework.ai:spring-ai-starter-model-ollama'
-	implementation 'org.springframework.amqp:spring-rabbitmq-client'
-
-	implementation 'org.springframework.boot:spring-boot-starter-amqp'
 	implementation 'org.springframework.amqp:spring-rabbit-stream'
+	implementation 'org.springframework.boot:spring-boot-starter-amqp'
+	implementation 'org.springframework.amqp:spring-rabbitmq-client'
 	implementation 'org.springframework.cloud:spring-cloud-stream'
 	implementation 'org.springframework.cloud:spring-cloud-stream-binder-rabbit'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
@@ -47,6 +45,7 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.cloud:spring-cloud-stream-test-binder'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	implementation 'org.springframework.ai:spring-ai-starter-model-ollama'
 }
 
 dependencyManagement {

@@ -1,21 +1,18 @@
 # spring-for-rabbit-super-stream-and-esql-filters
 
+
+# Getting Started
+
 Start RabbitMQ
 
 ```shell
-deployment/local/containers/rabbit.sh
+rabbitmq-server
 ```
 
 
 
-Stream Tracking
 
-```shell
-rabbitmq-streams list_stream_tracking events.spring.io -n rabbit
-```
-
-
-Start Consumer 
+1 - Create A ConsumerConfig object with the following in [applications/consumer](applications/consumer)
 
 ```java
 @org.springframework.context.annotation.Bean
@@ -25,7 +22,7 @@ java.util.function.Consumer<io.cloudNativeData.spring.rabbit.streams.domain.Spri
 }
 ```
 
-Consumer Properties
+2 - Add Consumer Properties
 
 ```properties
 spring.application.name=spring-consumer
@@ -50,7 +47,7 @@ spring.cloud.stream.rabbit.binder.connection-name-prefix==${spring.application.n
 spring.cloud.stream.rabbit.bindings.input.consumer.containerType=STREAM
 ```
 
-Adding Publisher
+3 - Create a Publisher Config object in  [applications/publisher](applications/publisher) and add the following RabbitStreamTemplate
 
 ```java
 @org.springframework.context.annotation.Bean
@@ -64,8 +61,21 @@ org.springframework.rabbit.stream.producer.RabbitStreamTemplate rabbitStreamTemp
 }
 ```
 
+4 - Add an application runner to the Publisher Config after the RabbitStreamTemplate
 
-Replay by with set Offset to First
+```java
+@Bean
+org.springframework.boot.ApplicationRunner applicationRunner(RabbitStreamTemplate rabbitStreamTemplate) {
+    return args -> {
+        log.info("Publishing Spring IO events");
+        rabbitStreamTemplate.convertAndSend(io.cloudNativeData.spring.rabbit.streams.domain.SpringIoEvent.builder().event("Welcome to RabbitMQ session")
+                .build());
+    };
+}
+```
+
+
+5 - Replay by with set Offset to First in the Consumer Config object
 
 ```java
 @org.springframework.context.annotation.Bean
@@ -87,9 +97,9 @@ Publisher Performance Test
 
 ```java
 /**
- * Loop 3 Million times
+ * Loop 17 Million times
  */
-private static final Long loopCount = 3000000L;
+private static final Long loopCount = 17000000L;
 
 @org.springframework.beans.factory.annotation.Value("${bathSize:10000}")
 private int batchSize;
@@ -112,7 +122,9 @@ org.springframework.rabbit.stream.producer.RabbitStreamTemplate template(com.rab
 
     var template = new org.springframework.rabbit.stream.producer.RabbitStreamTemplate(environment, perfTestStreamName);
     template.setProducerCustomizer((stream, builder) -> {
+        //Local batch size before sending
         builder.batchSize(batchSize);
+        //Number of messages to send per batch
         builder.subEntrySize(subBatchSize);
     });
 
@@ -176,7 +188,11 @@ spring.cloud.stream.bindings.input.content-type=application/json
 
 Publisher for Super Stream
 
+https://techdocs.broadcom.com/us/en/vmware-tanzu/data-solutions/tanzu-gemfire/10-1/gf/developing-data_serialization-using_pdx_region_entry_keys.html
+
+
 ```java
+//@org.springframework.beans.factory.annotation.Value("classpath:csv/additional/events.csv")
 @org.springframework.beans.factory.annotation.Value("classpath:csv/spring-io-session-events.csv")
 private org.springframework.core.io.Resource resource;
 
@@ -239,23 +255,26 @@ spring.cloud.stream.rabbit.bindings.output.producer.declare-exchange=false
 Consuming Properties
 
 ```properties
-spring.application.name=spring-consumer
+# PUBLISHER Only Properties
+spring.application.name=spring-publisher
 server.port=0
 
-spring.cloud.function.definition=logConsumer
-spring.cloud.stream.function.bindings.logConsumer-in-0=input
+spring.cloud.function.definition=eventPublisher
 
-spring.cloud.stream.bindings.input.group=spring.io
-spring.cloud.stream.bindings.input.destination=events.super.streams.filtering
-
+spring.cloud.stream.function.bindings.eventPublisher-out-0=output
+spring.cloud.stream.bindings.output.group=spring.io
+spring.cloud.stream.bindings.output.destination=events.super.streams.filtering
+spring.cloud.stream.rabbit.bindings.output.consumer.containerType=STREAM
 
 # Super Streams
-spring.cloud.stream.rabbit.bindings.input.consumer.container-type=STREAM
-spring.cloud.stream.rabbit.bindings.input.consumer.super-stream=true
-spring.cloud.stream.bindings.input.consumer.instance-count=2
-spring.cloud.stream.bindings.input.consumer.concurrency=1
-spring.cloud.stream.bindings.input.content-type=application/json
-spring.cloud.stream.rabbit.binder.connection-name-prefix==${spring.application.name}
+spring.cloud.stream.bindings.output.producer.partition-count=2
+spring.cloud.stream.bindings.output.producer.partition-key-expression=payload['session']
+spring.cloud.stream.rabbit.bindings.output.producer.producer-type=stream-async
+spring.cloud.stream.rabbit.bindings.output.producer.super-stream=true
+spring.cloud.stream.rabbit.bindings.output.producer.declare-exchange=false
+
+# Publish every 20 ms
+spring.integration.poller.fixedDelay=20
 ```
 
 Publisher for SQL Filters
@@ -289,6 +308,8 @@ java.util.function.Supplier<org.springframework.messaging.Message<io.cloudNative
 Consumer with SQL Filter
 
 ```java
+//TODO: Remove application properties settings
+
 //Zen's SQL = session = 'rabbit' AND year = 2026
 // Arul's SQL = session IN ('postgres','dataflow')
 // Vlad's SQL = session IN ('gemfire','valkey')
@@ -352,6 +373,9 @@ com.rabbitmq.client.amqp.Consumer constructConsumer(String stream,
                     //Processing input message
                     var event = messageConverter.convert(inputMessage.body());
                     log.info("Received: {}", event);
+
+                    //Acknowledge Message acceptance
+                    ctx.accept();
                 } catch (Exception e) {
                     log.error("Error:{}", String.valueOf(e));
                     throw e;
@@ -365,6 +389,7 @@ com.rabbitmq.client.amqp.Consumer constructConsumer(String stream,
 AI Intelligence
 
 ```java
+//TODO: Remove application properties settings
 
 private final String prompt = """
             Given the following events from the Spring IO Conference.
@@ -451,6 +476,9 @@ com.rabbitmq.client.amqp.Consumer constructConsumer(String stream,
                 try {
                     //Processing input message
                     subscriber.accept(messageConverter.convert(inputMessage.body()));
+
+                    //Acknowledge Message acceptance
+                    ctx.accept();
                 } catch (Exception e) {
                     log.error("Error:{}", String.valueOf(e));
                     throw e;
@@ -488,17 +516,21 @@ nyla.solutions.core.patterns.integration.Subscriber<io.cloudNativeData.spring.ra
 # Cleanup
 
 ```shell
-rabbitmqadmin delete queue name=events.spring.io
-rabbitmqadmin delete queue name=events.super.streams-0
-rabbitmqadmin delete queue name=events.super.streams-1
-rabbitmqadmin delete queue name=perfTest
-rabbitmqadmin delete queue name=events.super.streams.filtering-0
-rabbitmqadmin delete queue name=events.super.streams.filtering-1
-rabbitmqadmin delete exchange name=aiEventsConsumer-in-0
-rabbitmqadmin delete exchange name=events
-rabbitmqadmin delete exchange name=events.super.streams
-rabbitmqadmin delete exchange name=logFilteredConsumer-in-0
-rabbitmqadmin delete exchange name=logFilteredEvent-in-0
-rabbitmqadmin delete exchange name=events.super.streams.filtering
+rabbitmqadmin delete queue --name=events.spring.io
+rabbitmqadmin delete queue --name=events.super.streams-0
+rabbitmqadmin delete queue --name=events.super.streams-1
+rabbitmqadmin delete queue --name=perfTest
+rabbitmqadmin delete queue --name=events.super.streams.filtering-0
+rabbitmqadmin delete queue --name=events.super.streams.filtering-1
+rabbitmqadmin delete exchange --name=aiEventsConsumer-in-0
+rabbitmqadmin delete exchange --name=events
+rabbitmqadmin delete exchange --name=events.super.streams
+rabbitmqadmin delete exchange --name=logFilteredConsumer-in-0
+rabbitmqadmin delete exchange --name=logFilteredEvent-in-0
+rabbitmqadmin delete exchange --name=events.super.streams.filtering
 ```
+
+
+
+
 
