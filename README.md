@@ -1,5 +1,10 @@
-# spring-for-rabbit-super-stream-and-esql-filters
+# Spring for Rabbit Super Streams and SQL Filters
 
+![rabbit-super-streams.png](docs/img/rabbit-super-streams.png)
+
+Note: Here the [following for installing RabbitMQ](https://www.rabbitmq.com/docs/download)
+
+Also see deck from [SpringIO 2026 - RabbitMQ for Superstreams with SQL Filters](docs/RabbitMQ-for-Superstream-with-SQL-Filters.pdf)
 
 # Getting Started
 
@@ -8,7 +13,6 @@ Start RabbitMQ
 ```shell
 rabbitmq-server
 ```
-
 
 
 
